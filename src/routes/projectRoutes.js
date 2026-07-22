@@ -1,8 +1,9 @@
 const express = require("express");
+
+const projectController = require("../controllers/projectController");
+
 const router= express.Router();
-router.get("/",(req,res)=>{
-    res.json({
-    message: "Get all projects"
-    });
-});
+
+router.get("/", projectController.getAllProjects);
+
 module.exports=router;
