@@ -191,6 +191,12 @@ const updateTask = async (req, res) => {
         });
       }
     }
+
+    if (existingTask.status === "done" && status === "todo") {
+    console.log(
+        `Warning: Task ${id} was moved from done back to todo.`
+    );
+}
     const task = await prisma.task.update({
       where: {
         id: id,
