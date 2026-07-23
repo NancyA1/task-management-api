@@ -77,7 +77,7 @@ const updateProject = async (req, res) => {
   try {
       
      console.log("Body:", req.body);
-     
+
     const id = Number(req.params.id);
     
     const { name, description } = req.body;
@@ -129,9 +129,50 @@ if (duplicateProject && duplicateProject.id !== id) {
   }
 };
 
+
+const deleteProject = async ( req,res) => { 
+  try{
+  const id = Number(req.params.id);
+  const project = await prisma.project.findUnique({
+    where :{
+        id:id
+    }
+  })
+  if(!project){
+    return res.status(404).json({
+     message: "Project not found."
+    });
+  }
+
+  const delProject = await prisma.project.delete({
+    where:{
+        id:id
+    }
+  })
+  return res.json({
+      message: "Project deleted successfully."
+    });
+
+
+  }
+  
+catch (error) {
+
+console.error(error);
+
+    res.status(500).json({
+      message: "Failed to delete project.",
+      error: error.message
+    });
+}
+
+};
+
+
 module.exports = {
   getAllProjects,
   createProject,
   getProjectById,
-  updateProject
+  updateProject,
+  deleteProject
 };
