@@ -6,6 +6,12 @@ const VALID_STATUS = ["todo", "in_progress", "done"];
 
 const VALID_PRIORITY = ["low", "medium", "high"];
 
+const VALID_SORT_FIELDS = [
+    "dueDate",
+    "priority",
+    "createdAt"
+];
+
 const createTask = async (req, res) => {
   try {
     const projectId = Number(req.params.projectId);
@@ -288,7 +294,11 @@ where.OR = [
 
 ];
 }
-
+if (sortBy && !VALID_SORT_FIELDS.includes(sortBy)) {
+    return res.status(400).json({
+        message: "Invalid sort field."
+    });
+}
 if (sortBy) {
 orderBy[sortBy] = order || "asc";
 }
