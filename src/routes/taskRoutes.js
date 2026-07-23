@@ -6,6 +6,6 @@ const router = express.Router();
 
 
 router.get("/:id", taskController.getTaskById);
-
+router.put("/:id",taskController.updateTask);
 
 module.exports = router;

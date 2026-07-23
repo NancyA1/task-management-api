@@ -151,8 +151,93 @@ const getTaskById = async (req, res) => {
   }
 };
 
+const updateTask = async (req, res) => {
+    try {
+
+        const id = Number(req.params.id);
+
+        const existingTask = await prisma.task.findUnique({
+            where: {
+                id: id
+            }
+        });
+
+        if (!existingTask) {
+            return res.status(404).json({
+                message: "Task not found."
+            });
+        }
+
+        const {
+            title,
+            description,
+            status,
+            priority,
+            dueDate
+        } = req.body;
+if (title && title.trim() === "") {
+    return res.status(400).json({
+        message: "Task title cannot be empty."
+    });
+}
+if (status && !VALID_STATUS.includes(status)) {
+    return res.status(400).json({
+        message: "Invalid status value."
+    });
+}
+if (priority && !VALID_PRIORITY.includes(priority)) {
+    return res.status(400).json({
+        message: "Invalid priority value."
+    });
+}
+if (dueDate) {
+    const today = new Date();
+    const taskDueDate = new Date(dueDate);
+
+    if (isNaN(taskDueDate.getTime())) {
+        return res.status(400).json({
+            message: "Invalid due date format."
+        });
+    }
+
+    today.setHours(0,0,0,0);
+    taskDueDate.setHours(0,0,0,0);
+
+    if (taskDueDate < today) {
+        return res.status(400).json({
+            message: "Due date cannot be in the past."
+        });
+    }
+}
+const task = await prisma.task.update({
+    where: {
+        id: id
+    },
+    data: {
+        title,
+        description,
+        status,
+        priority,
+        dueDate: dueDate ? new Date(dueDate) : undefined
+    }
+});
+
+res.json(task);
+
+    } catch(error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Failed to update task."
+        });
+    }
+};
+
+
 module.exports = {
     createTask,
     getTasksByProject,
-    getTaskById
+    getTaskById,
+    updateTask
 };
