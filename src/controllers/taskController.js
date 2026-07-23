@@ -1,5 +1,4 @@
 const { PrismaClient } = require("@prisma/client");
-const { json } = require("node:stream/consumers");
 
 const prisma = new PrismaClient();
 
@@ -273,7 +272,21 @@ where.dueDate.gte = new Date(due_date_from);
 if (due_date_to) {
     where.dueDate.lte = new Date(due_date_to);
 }
+if (q) {
+where.OR = [
+    {
+        title: {
+            contains: q,
+        }
+    },
+    {                    
+    description : {
+        contains: q,
+    }
+  }
 
+];
+}
     const tasks = await prisma.task.findMany({
     where,
       skip,
