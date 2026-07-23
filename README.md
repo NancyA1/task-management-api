@@ -35,7 +35,13 @@ Create a SQL Server database named **TaskManagementAPI**.
 
 Create a `.env` file in the project root and add your database connection string.
 
-Example:
+**Windows Authentication (Integrated Security)**
+
+```env
+DATABASE_URL="sqlserver://YOUR_SERVER;database=TaskManagementAPI;integratedSecurity=true;trustServerCertificate=true"
+```
+
+**SQL Server Authentication**
 
 ```env
 DATABASE_URL="sqlserver://YOUR_SERVER;database=TaskManagementAPI;user=YOUR_USERNAME;password=YOUR_PASSWORD;trustServerCertificate=true"
@@ -44,10 +50,11 @@ DATABASE_URL="sqlserver://YOUR_SERVER;database=TaskManagementAPI;user=YOUR_USERN
 Replace:
 
 * `YOUR_SERVER` with your SQL Server instance.
-* `YOUR_USERNAME` with your SQL Server username.
-* `YOUR_PASSWORD` with your SQL Server password.
+* `YOUR_USERNAME` with your SQL Server username (if using SQL Server Authentication).
+* `YOUR_PASSWORD` with your SQL Server password (if using SQL Server Authentication).
 
-> If you use Windows Authentication (Integrated Security), configure the connection string accordingly.
+Use the connection string that matches your SQL Server authentication method.
+
 
 ### 4. Apply Prisma migrations
 
