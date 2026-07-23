@@ -35,6 +35,22 @@ const createProject = async (req, res) => {
   try {
     const { name, description } = req.body;
 
+    if (!name || name.trim() === "" ) {
+    return res.status(400).json({
+        message: "Project name is required."
+    });
+}
+   const duplicateProject = await prisma.project.findUnique({
+    where: {
+        name: name
+    }
+});
+if (duplicateProject) {
+    return res.status(409).json({
+        message: "Project name already exists."
+    });
+}
+    
     const project = await prisma.project.create({
       data: {
         name,
@@ -42,8 +58,9 @@ const createProject = async (req, res) => {
       },
     });
 
-    res.status(201).json(project);
-  } catch (error) {
+  return res.status(201).json(project);
+  }
+   catch (error) {
     res.status(500).json({
       message: "Failed to create project.",
     });
