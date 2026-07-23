@@ -124,9 +124,35 @@ const getTasksByProject = async (req, res) => {
   }
 };
 
+const getTaskById = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
+    const task = await prisma.task.findUnique({
+      where: {
+        id: id
+      }
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found."
+      });
+    }
+
+    res.json(task);
+
+  } catch(error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to retrieve task."
+    });
+  }
+};
 
 module.exports = {
     createTask,
-    getTasksByProject
+    getTasksByProject,
+    getTaskById
 };

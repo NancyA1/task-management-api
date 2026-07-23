@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const taskController = require("../controllers/taskController");
@@ -5,7 +6,9 @@ const taskController = require("../controllers/taskController");
 const router = express.Router();
 
 
-router.get("/:id", taskController.getTaskById);
+router.post("/:projectId/tasks", taskController.createTask);
+
+router.get("/:projectId/tasks", taskController.getTasksByProject);
 
 
 module.exports = router;
