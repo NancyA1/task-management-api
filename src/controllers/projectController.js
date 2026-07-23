@@ -73,8 +73,65 @@ const getProjectById = async (req, res) => {
   }
 };
 
+const updateProject = async (req, res) => {
+  try {
+      
+     console.log("Body:", req.body);
+     
+    const id = Number(req.params.id);
+    
+    const { name, description } = req.body;
+
+    const existingProject = await prisma.project.findUnique({
+    where: {
+        id: id
+    }
+});
+
+if (!existingProject) {
+    return res.status(404).json({
+        message: "Project not found."
+    });
+}
+   if (!name || name.trim() === "" ) {
+    return res.status(400).json({
+        message: "Project name is required."
+    });
+}
+const duplicateProject = await prisma.project.findUnique({
+    where: {
+        name: name
+    }
+});
+if (duplicateProject && duplicateProject.id !== id) {
+    return res.status(409).json({
+        message: "Project name already exists."
+    });
+}
+
+    const project = await prisma.project.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name,
+        description,
+      },
+    });
+    res.json(project);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to update project.",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllProjects,
   createProject,
   getProjectById,
+  updateProject
 };
