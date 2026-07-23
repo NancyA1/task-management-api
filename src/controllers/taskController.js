@@ -255,6 +255,7 @@ const getAllTasks = async (req, res) => {
 } = req.query;
 
     const where = {};
+    const orderBy = {};
 
     if (status) {
       where.status = status;
@@ -287,8 +288,13 @@ where.OR = [
 
 ];
 }
+
+if (sortBy) {
+orderBy[sortBy] = order || "asc";
+}
     const tasks = await prisma.task.findMany({
     where,
+    orderBy,
       skip,
       take: limit,
 
