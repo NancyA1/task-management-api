@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const { json } = require("node:stream/consumers");
 
 const prisma = new PrismaClient();
 
@@ -235,9 +236,45 @@ res.json(task);
 };
 
 
+ const deleteTask = async (req,res)=>{
+    try{
+     const id= Number(req.params.id);
+     const task = await prisma.task.findUnique({
+        where:{
+            id:id
+        }
+     });
+     if(!task){
+        return res.status(404).json({
+            message: "Task not found."
+        })
+     }
+     const deltask= await prisma.task.delete({
+        where:{
+            id:id
+        }
+     })
+     res.json({
+        "message": "Task deleted successfully."
+     })
+    }
+
+    catch(error){
+        console.error(error);
+
+        res.status(500).json({
+            message: "Failed to delete task."
+        });
+    }
+
+
+ }
+
+
 module.exports = {
     createTask,
     getTasksByProject,
     getTaskById,
-    updateTask
+    updateTask,
+    deleteTask
 };
