@@ -6,11 +6,7 @@ const VALID_STATUS = ["todo", "in_progress", "done"];
 
 const VALID_PRIORITY = ["low", "medium", "high"];
 
-const VALID_SORT_FIELDS = [
-    "dueDate",
-    "priority",
-    "createdAt"
-];
+const VALID_SORT_FIELDS = ["dueDate", "priority", "createdAt"];
 
 const createTask = async (req, res) => {
   try {
@@ -97,14 +93,73 @@ const getTasksByProject = async (req, res) => {
         message: "Project not found.",
       });
     }
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const skip = (page - 1) * limit;
+    const { status, priority, due_date_from, due_date_to, q, sortBy, order } =
+      req.query;
+    const where = {
+      projectId: projectId,
+    };
+    if (status) {
+      where.status = status;
+    }
+
+    if (priority) {
+      where.priority = priority;
+    }
+    if (due_date_from || due_date_to) {
+      where.dueDate = {};
+    }
+
+    if (due_date_from) {
+      where.dueDate.gte = new Date(due_date_from);
+    }
+
+    if (due_date_to) {
+      where.dueDate.lte = new Date(due_date_to);
+    }
+    if (q) {
+      where.OR = [
+        {
+          title: {
+            contains: q,
+          },
+        },
+        {
+          description: {
+            contains: q,
+          },
+        },
+      ];
+    }
+    if (sortBy && !VALID_SORT_FIELDS.includes(sortBy)) {
+    return res.status(400).json({
+        message: "Invalid sort field."
+    });
+}
+    const orderBy = {};
+
+    if (sortBy) {
+      orderBy[sortBy] = order === "desc" ? "desc" : "asc";
+    }
 
     const tasks = await prisma.task.findMany({
-      where: {
-        projectId: projectId,
-      },
+      where,
+      skip,
+      take: limit,
+      orderBy,
     });
-
-    res.json(tasks);
+    const total = await prisma.task.count({
+      where,
+    });
+    res.json({
+      data: tasks,
+      total,
+      page,
+      limit,
+    });
   } catch (error) {
     console.error(error);
 
@@ -193,10 +248,8 @@ const updateTask = async (req, res) => {
     }
 
     if (existingTask.status === "done" && status === "todo") {
-    console.log(
-        `Warning: Task ${id} was moved from done back to todo.`
-    );
-}
+      console.log(`Warning: Task ${id} was moved from done back to todo.`);
+    }
     const task = await prisma.task.update({
       where: {
         id: id,
@@ -256,15 +309,8 @@ const getAllTasks = async (req, res) => {
     const limit = Number(req.query.limit) || 10;
 
     const skip = (page - 1) * limit;
-    const {
-    status,
-    priority,
-    due_date_from,
-    due_date_to,
-    q,
-    sortBy,
-    order
-} = req.query;
+    const { status, priority, due_date_from, due_date_to, q, sortBy, order } =
+      req.query;
 
     const where = {};
     const orderBy = {};
@@ -273,44 +319,43 @@ const getAllTasks = async (req, res) => {
       where.status = status;
     }
     if (priority) {
-    where.priority = priority;
-}
-if (due_date_from || due_date_to) {
-    where.dueDate = {};
-}
-if (due_date_from) {
-where.dueDate.gte = new Date(due_date_from);
-}
-
-if (due_date_to) {
-    where.dueDate.lte = new Date(due_date_to);
-}
-if (q) {
-where.OR = [
-    {
-        title: {
-            contains: q,
-        }
-    },
-    {                    
-    description : {
-        contains: q,
+      where.priority = priority;
     }
-  }
+    if (due_date_from || due_date_to) {
+      where.dueDate = {};
+    }
+    if (due_date_from) {
+      where.dueDate.gte = new Date(due_date_from);
+    }
 
-];
-}
-if (sortBy && !VALID_SORT_FIELDS.includes(sortBy)) {
-    return res.status(400).json({
-        message: "Invalid sort field."
-    });
-}
-if (sortBy) {
-orderBy[sortBy] = order || "asc";
-}
+    if (due_date_to) {
+      where.dueDate.lte = new Date(due_date_to);
+    }
+    if (q) {
+      where.OR = [
+        {
+          title: {
+            contains: q,
+          },
+        },
+        {
+          description: {
+            contains: q,
+          },
+        },
+      ];
+    }
+    if (sortBy && !VALID_SORT_FIELDS.includes(sortBy)) {
+      return res.status(400).json({
+        message: "Invalid sort field.",
+      });
+    }
+    if (sortBy) {
+      orderBy[sortBy] = order || "asc";
+    }
     const tasks = await prisma.task.findMany({
-    where,
-    orderBy,
+      where,
+      orderBy,
       skip,
       take: limit,
 
@@ -324,7 +369,7 @@ orderBy[sortBy] = order || "asc";
     });
 
     const total = await prisma.task.count({
-        where
+      where,
     });
 
     res.json({
